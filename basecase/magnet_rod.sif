@@ -1,0 +1,133 @@
+! A simple test case to solve for the magnetic field of a permanent magnet and a metal rod
+! Author: Francisco Jimenez
+! Original Date: 20 December 2023
+! cenirmac@gmail.com
+
+Check Keywords "warn"
+
+Header
+  CHECK KEYWORDS Warn
+  Mesh DB "mesh" "."
+  Include Path ""
+  Results Directory res
+End
+
+Simulation
+  Max Output Level = 3
+  Coordinate System = Cartesian
+  Coordinate Mapping(3) = 1 2 3
+  Simulation Type = steady state
+  Steady State Max Iterations = 1
+  Use Mesh names = True
+End
+
+Constants
+  Gravity(4) = 0 -1 0 9.82
+  Stefan Boltzmann = 5.67e-08
+  Permittivity of Vacuum = 8.8542e-12
+  Boltzmann Constant = 1.3807e-23
+  Unit Charge = 1.602e-19
+End
+
+Body 1
+  Name = "Air"
+  Equation = 1
+  Material = 1
+End
+
+Body 2
+  Name = "Magnet"
+  Equation = 1
+  Material = 2
+End
+
+Body 3
+  Name = "Rod"
+  Equation = 1
+  Material = 3
+End
+
+
+Solver 1
+  Equation = "MgDynamics"
+  Procedure = "MagnetoDynamics" "WhitneyAVSolver"
+  Variable = AV
+  Optimize Bandwidth = True
+  Linear System Symmetric = Logical True
+  Linear System Solver = "Iterative"
+  Linear System Iterative Method = BiCgStabl
+  BicgStabl Polynomial Degree = 6
+  Linear System Max Iterations = 3000
+  Linear System Convergence Tolerance = 1.0e-8
+  Linear System Preconditioning = None
+  Linear System Abort Not Converged = False
+  Linear System Residual Output = 500
+  Newton-Raphson Iteration = Logical False
+  Edge Basis = Logical True
+End
+
+Solver 2
+  Equation = "MgDynPost"
+  Potential Variable = String "AV"
+  Procedure = "MagnetoDynamics" "MagnetoDynamicsCalcFields"
+  Calculate Magnetic Field Strength = Logical False
+  Calculate Current Density = Logical False
+  Calculate JxB = Logical False
+  Calculate Magnetic Flux Density = Logical True
+  Calculate Relative Permeability = Logical False
+  Linear System Symmetric = Logical True
+  Calculate Nodal fields = Logical False
+  Calculate Elemental fields = Logical True
+  Steady State Convergence Tolerance = 1e-8
+  Linear System Solver = "Iterative"
+  Linear System Iterative Method = CG
+  Linear System Max Iterations = 5000
+  Linear System Convergence Tolerance = 1.0e-8
+  Linear System Preconditioning = None
+  Linear System Residual Output = 1000
+End
+
+Solver 3
+  Exec Solver = after timestep
+  Equation = "ResultsOutput"
+  Save Geometry Ids = True
+  Procedure = "ResultOutputSolve" "ResultOutputSolver"
+  Output File Name = magnet_rod
+  Vtu format = Logical True
+  Discontinuous bodies = Logical True
+  Single Precision = Logical True
+End
+
+
+Equation 1
+  Name = "SolverAV"
+  Active Solvers(3) = 1 2 3
+End
+
+Material 1
+  Name = "Air"
+  Relative Permeability = 1
+  Relative Permittivity = 1
+End
+
+Material 2
+  Name = "Plus"
+  Magnetization 3 = Real 9.8e5  
+  Relative Permeability = 1.05
+  Relative Permittivity = 1
+End
+
+Material 3
+  Name = "IronLinear"
+  Relative Permeability = 1000
+  Relative Permittivity = 1
+End
+
+Boundary Condition 1
+  Target Boundaries(1) = 3
+  Name = "farfield"
+  Infinity BC = True 
+  !AV {e} = Real 0.0
+End
+
+

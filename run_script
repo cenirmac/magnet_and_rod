@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Simple script to be run by Dakota
+
+parameters_file=$1
+output_file=$2
+
+dprepro --left-delimiter='[[' --right-delimiter=']]' $1 magnet_rod_salome_template.py magnet_rod_salome.py
+
+echo $(pwd) > log
+cp -r ../basecase/* .
+
+salome -t magnet_rod_salome.py > log_salome
+
+ElmerGrid 8 2 mesh.unv -autoclean -names -out mesh > log_elmergrid
+ElmerSolver magnet_rod.sif > log_elmersolver
+python postprocess.py
+echo '1' > $2
+
+

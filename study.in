@@ -1,0 +1,49 @@
+# Description: Dakota input file
+# Dakota version: 6.41
+
+environment
+    # write results to this file
+    tabular_data
+        tabular_data_file = 'results.dat'
+
+method
+     multidim_parameter_study
+     partitions 50
+#    list_parameter_study
+#       list_of_points = 237
+
+model
+   single
+
+variables
+    # specify our 'design' variables - parameters
+    active design
+    continuous_design = 1
+        descriptors       'rotation'
+           lower_bounds      0         
+           upper_bounds      360        
+ 
+interface
+    fork
+        # dakota will 'fork' this script for each iteration;
+        # two command-line parameters will be appended,
+        # input file path (iteration parameters)
+        # and output file path (results)
+        asynchronous
+        evaluation_concurrency = 4
+        analysis_concurrency = 1
+        #local_evaluation_scheduling static
+        analysis_driver = 'run_script'
+        work_directory = directory_tag
+        copy_files = 'templatedir/*'
+#        named 'workdir' file_save directory_save
+        named 'workdir'
+        aprepro
+
+responses
+    # at the end of each iteration, DAKOTA will
+    # read the output file
+    objective_functions = 1
+    descriptors 'dummy'
+    no_gradients
+    no_hessians
